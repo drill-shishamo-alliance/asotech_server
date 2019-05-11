@@ -24,6 +24,7 @@ func (r *routerHandler) SetUpRouter() *gin.Engine {
 	 * SetUp Routing
 	 */
 	router := gin.Default()
+	// /users -> apiary
 	router.POST("/rooms", ctrl.CreateTheRoom)
 	router.GET("rooms/{id}/checkin/status", ctrl.IsAllMemberReady)
 	router.POST("rooms/{id}/checkin", ctrl.BelongToTheRoom)

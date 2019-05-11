@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/drill-shishamo-alliance/asotech_server/model"
-	"github.com/drill-shishamo-alliance/asotech_server/model/view"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -26,12 +25,8 @@ func NewRoomController(r model.IRoom) IRoomController {
 }
 
 func (ctrl *roomController) CreateTheRoom(ctx *gin.Context) {
-	var form view.PostRoom
-	err := ctx.Bind(&form)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
-	}
-	result, err := ctrl.IRoom.Insert(form.UserId, "3600", 5)
+	userId := ctx.GetHeader("user_id")
+	result, err := ctrl.IRoom.Insert(userId, "3600", 5)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
 	}
@@ -49,12 +44,8 @@ func (ctrl *roomController) IsAllMemberReady(ctx *gin.Context) {
 
 func (ctrl *roomController) BelongToTheRoom(ctx *gin.Context) {
 	roomId := ctx.Param("id")
-	var body view.PostBelongToTheRoom
-	err := ctx.Bind(&body)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
-	}
-	err = ctrl.IRoom.UpdateMember(roomId, body.UserId)
+	userId := ctx.GetHeader("user_id")
+	err := ctrl.IRoom.UpdateMember(roomId, userId)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
 	}
@@ -72,12 +63,8 @@ func (ctrl *roomController) GetRemainingHumans(ctx *gin.Context) {
 
 func (ctrl *roomController) GetHumanCollaborate(ctx *gin.Context) {
 	roomId := ctx.Param("id")
-	var body view.PostHumanCollaborate
-	err := ctx.Bind(&body)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
-	}
-	result, err := ctrl.IRoom.SelectCollaborateHuman(roomId, body.UserId, 80)
+	userId := ctx.GetHeader("user_id")
+	result, err := ctrl.IRoom.SelectCollaborateHuman(roomId, userId, 80)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
 	}
