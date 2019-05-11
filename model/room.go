@@ -13,11 +13,11 @@ type room struct {
 }
 
 type IRoom interface {
-	Insert(userId, restrictTime string, memberNum int) (string, error)
-	UpdateMember(roomId, userId string) (string, error)
+	Insert(userId, restrictTime string, memberNum int) (*db.RoomId, error)
+	UpdateMember(roomId, userId string) error
 	SelectRoomMember(roomId string) (string, error)
 	DecreaseMemberStatus(roomId, userId string) error
-	SelectRemainingHuman(roomId string) (string, error)
+	SelectRemainingHuman(roomId string) (*db.RemainingHuman, error)
 	SelectHumansLocation(roomId string) ([]*db.UserLocation, error)
 	SelectDemonsLocation(roomId string) (*db.UserLocation, error)
 }
@@ -27,49 +27,51 @@ func NewRoom(repo redis.IRedisRepository , id guid.IGuidUtil) IRoom {
 }
 
 // Insert
-func (r *room) Insert(userId, restrictTime string, memberNum int) (string, error) {
+func (r *room) Insert(userId, restrictTime string, memberNum int) (*db.RoomId, error) {
 	// ゲームの部屋作成
 	UserRoomValue, err := r.IRedisRepository.CreateUserRoom(userId, r.IGuidUtil.CreateGuid())
 	if err != nil {
-		return "", nil
+		return nil, err
 	}
 	// ゲームのメンバー
 	err =  r.IRedisRepository.CreateRoomMember(UserRoomValue)
 	if err != nil {
-		return "", nil
+		return nil, err
 	}
 	// 鬼の決定
 	err = r.IRedisRepository.CreateDemon(UserRoomValue, userId)
 	if err != nil {
-		return "", nil
+		return nil, err
 	}
-	return UserRoomValue, nil
+	result := new(db.RoomId)
+	result.Value = UserRoomValue
+	return result, nil
 }
 
-func (r *room) UpdateMember(roomId, userId string) (string, error) {
+func (r *room) UpdateMember(roomId, userId string) error {
 	// 部屋にユーザを追加
 	// 1. ユーザのデータを取得
 	roomMember, err := r.IRedisRepository.GetRoomMember(roomId)
 	if err != nil {
-		return "", err
+		return err
 	}
 	// 2. データ追加
 	roomMember.UserId = append(roomMember.UserId, userId)
 	roomMemberNewValue, err := json.Marshal(roomMember)
 	if err != nil {
-		return "", err
+		return err
 	}
 	// 3. 再保存
 	err = r.IRedisRepository.UpdateRoomMember(roomId, roomMemberNewValue)
 	if err != nil {
-		return "", err
+		return err
 	}
 	// 4. ユーザの位置情報保存
 	err = r.IRedisRepository.CreateUserLocation(userId)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return "", nil
+	return nil
 }
 
 func (r *room) SelectRoomMember(roomId string) (string, error) {
@@ -103,16 +105,16 @@ func (r *room) DecreaseMemberStatus(roomId, userId string) error {
 	return nil
 }
 
-func (r *room) SelectRemainingHuman(roomId string) (string, error) {
+func (r *room) SelectRemainingHuman(roomId string) (*db.RemainingHuman, error) {
 	// 1. ルームのメンバーを取得
 	roomMemberValue, err := r.IRedisRepository.GetRoomMember(roomId)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// 2-1. 鬼のIDを取得
 	demonId, err := r.IRedisRepository.GetDemonId(roomId)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	count := 0
 	for _, values := range roomMemberValue.UserId {
@@ -120,7 +122,9 @@ func (r *room) SelectRemainingHuman(roomId string) (string, error) {
 			count ++
 		}
 	}
-	return string(count), nil
+	result := new(db.RemainingHuman)
+	result.Value = string(count)
+	return result, nil
 }
 
 func (r *room) SelectHumansLocation(roomId string) ([]*db.UserLocation, error) {
