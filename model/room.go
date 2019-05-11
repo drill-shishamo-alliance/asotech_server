@@ -5,6 +5,7 @@ import (
 	"github.com/drill-shishamo-alliance/asotech_server/interface/guid"
 	"github.com/drill-shishamo-alliance/asotech_server/interface/redis"
 	"github.com/drill-shishamo-alliance/asotech_server/model/db"
+	"math"
 )
 
 type room struct {
@@ -20,6 +21,7 @@ type IRoom interface {
 	SelectRemainingHuman(roomId string) (*db.RemainingHuman, error)
 	SelectHumansLocation(roomId string) ([]*db.UserLocation, error)
 	SelectDemonsLocation(roomId string) (*db.UserLocation, error)
+	SelectCollaborateHuman(roomId, userId string) (*db.RoomUser ,error)
 }
 
 func NewRoom(repo redis.IRedisRepository , id guid.IGuidUtil) IRoom {
@@ -176,4 +178,71 @@ func (r *room) SelectDemonsLocation(roomId string) (*db.UserLocation, error) {
 		}
 	}
 	return &result, nil
+}
+
+func (r *room) SelectCollaborateHuman(roomId, userId string, circle float64) (*db.RoomUser, error) {
+	// 1. ルームのメンバーを取得
+	roomMemberValue, err := r.IRedisRepository.GetRoomMember(roomId)
+	if err != nil {
+		return nil, err
+	}
+	// 2-1. 鬼のIDを取得
+	demonId, err := r.IRedisRepository.GetDemonId(roomId)
+	if err != nil {
+		return nil, err
+	}
+	myLocation, err := r.IRedisRepository.GetUserLocation(userId)
+	if err != nil {
+		return nil, err
+	}
+	// 3. 位置情報を取得
+	result := new(db.RoomUser)
+	for _, value := range roomMemberValue.UserId {
+		if value != demonId && value != userId {
+			userLocation, err := r.IRedisRepository.GetUserLocation(value)
+			if err != nil {
+				return nil, err
+			}
+			isNear, err := checkCollaborateArea(myLocation, userLocation, circle)
+			if err != nil {
+				return nil, err
+			}
+			if isNear {
+				result.UserId = append(result.UserId, value)
+			}
+		}
+	}
+	return result, nil
+}
+
+const (
+	EQUATORIAL_RADIUS    = 6378137.0            // 赤道半径 GRS80
+	POLAR_RADIUS         = 6356752.314          // 極半径 GRS80
+	ECCENTRICITY         = 0.081819191042815790 // 第一離心率 GRS80
+)
+
+func checkCollaborateArea(myLocation, userLocation *db.UserLocation, circle float64) (bool, error) {
+	dx := degree2radian(myLocation.Longitude - userLocation.Longitude)
+	dy := degree2radian(myLocation.Latitude - userLocation.Latitude)
+	my := degree2radian((myLocation.Latitude + userLocation.Latitude) / 2)
+
+	W := math.Sqrt(1 - (Power2(ECCENTRICITY) * Power2(math.Sin(my)))) // 卯酉線曲率半径の分母
+	m_numer := EQUATORIAL_RADIUS * (1 - Power2(ECCENTRICITY))         // 子午線曲率半径の分子
+
+	M := m_numer / math.Pow(W, 3) // 子午線曲率半径
+	N := EQUATORIAL_RADIUS / W    // 卯酉線曲率半径
+
+	d := math.Sqrt(Power2(dy*M) + Power2(dx*N*math.Cos(my)))
+	if d <= circle {
+		return true, nil
+	}
+	return false, nil
+}
+
+func degree2radian(x float64) float64 {
+	return x * math.Pi / 180
+}
+
+func Power2(x float64) float64 {
+	return math.Pow(x, 2)
 }
