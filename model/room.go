@@ -21,7 +21,8 @@ type IRoom interface {
 	SelectRemainingHuman(roomId string) (*db.RemainingHuman, error)
 	SelectHumansLocation(roomId string) ([]*db.UserLocation, error)
 	SelectDemonsLocation(roomId string) (*db.UserLocation, error)
-	SelectCollaborateHuman(roomId, userId string) (*db.RoomUser ,error)
+	SelectCollaborateHuman(roomId, userId string, circle float64) (*db.RoomUser ,error)
+	IsMemberReady(roomId string) (bool, error)
 }
 
 func NewRoom(repo redis.IRedisRepository , id guid.IGuidUtil) IRoom {
@@ -213,6 +214,10 @@ func (r *room) SelectCollaborateHuman(roomId, userId string, circle float64) (*d
 		}
 	}
 	return result, nil
+}
+
+func (r *room) IsMemberReady(roomId string) (bool, error) {
+
 }
 
 const (

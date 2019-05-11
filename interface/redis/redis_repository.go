@@ -13,6 +13,8 @@ type redisRepository struct {
 type IRedisRepository interface {
 	CreateUserRoom(userId, value string) (string, error)
 	CreateRoomMember(roomId string) error
+	CreateRoomMemberLimit(roomId, num string) error
+	GetRoomMemberLimit(roomId string) (*db.RoomMemberLimit, error)
 	CreateDemon(roomId, userId string) error
 	CreateUserLocation(userId string) error
 	DeleteUserLocation(userId string) error
@@ -118,4 +120,26 @@ func (r *redisRepository) GetUserLocation(userId string) (*db.UserLocation, erro
 		return nil,err
 	}
 	return &userLocation, nil
+}
+
+func  (r *redisRepository) CreateRoomMemberLimit(roomId, num string) error {
+	RoomMemberLimitKey := roomId + "_ROOM_MEMBER_LIMIT"
+	RoomMemberLimitValue := num
+	// ルームキー
+	err := r.Client.Set(RoomMemberLimitKey, RoomMemberLimitValue, 0).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *redisRepository) GetRoomMemberLimit(roomId string) (*db.RoomMemberLimit, error) {
+	RoomMemberLimitKey := roomId + "_ROOM_MEMBER_LIMIT"
+	roomMemberLimitValue, err := r.Client.Get(RoomMemberLimitKey).Result()
+	if err != nil {
+		return nil, err
+	}
+	roomMemberLimit := new(db.RoomMemberLimit)
+	roomMemberLimit.Value = roomMemberLimitValue
+	return roomMemberLimit, nil
 }

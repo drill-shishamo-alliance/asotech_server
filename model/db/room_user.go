@@ -11,3 +11,7 @@ type RoomId struct {
 type RemainingHuman struct {
 	Value string `json:"remaining_human"`
 }
+
+type RoomMemberLimit struct {
+	Value string `json:"room_member_limit"`
+}
