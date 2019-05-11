@@ -7,7 +7,10 @@ services:
     command: redis-server --appendonly yes --requirepass foobared
     volumes:
       - redis-data:/data
+  api:
+    build: .
+    ports:
+      - "3001:3001"
 
-  volumes:
-    redis-data:
-    driver: local
+volumes:
+  redis-data:

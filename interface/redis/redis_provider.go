@@ -14,7 +14,7 @@ func NewRedisProvider()  IRedisProvider {
 
 func (r *redisProvider) CreateClient() *redis.Client{
 	return redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "redis",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})

@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/drill-shishamo-alliance/asotech_server/interface/guid"
 	"github.com/drill-shishamo-alliance/asotech_server/interface/redis"
 	"github.com/drill-shishamo-alliance/asotech_server/model/db"
@@ -217,7 +218,18 @@ func (r *room) SelectCollaborateHuman(roomId, userId string, circle float64) (*d
 }
 
 func (r *room) IsMemberReady(roomId string) (bool, error) {
-
+	roomMemberLimitValue, err := r.IRedisRepository.GetRoomMemberLimit(roomId)
+	if err != nil {
+		return false, err
+	}
+	roomMemberValue, err := r.IRedisRepository.GetRoomMember(roomId)
+	if err != nil {
+		return false, err
+	}
+	if roomMemberLimitValue.Value != string(len(roomMemberValue.UserId)) {
+		return false, fmt.Errorf("invailed Value")
+	}
+	return true, nil
 }
 
 const (
