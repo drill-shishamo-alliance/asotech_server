@@ -26,12 +26,12 @@ func (r *routerHandler) SetUpRouter() *gin.Engine {
 	router := gin.Default()
 	// /users -> apiary
 	router.POST("/rooms", ctrl.CreateTheRoom)
-	router.GET("rooms/checkin/status", ctrl.IsAllMemberReady)
-	router.POST("rooms/checkin", ctrl.BelongToTheRoom)
-	router.GET("rooms/remaining/human", ctrl.GetRemainingHumans)
-	router.GET("rooms/humans/collaborate", ctrl.GetHumanCollaborate)
-	router.GET("rooms/humans/locations", ctrl.GetHumansLocation)
-	router.GET("rooms/demons/locations", ctrl.GetDemonsLocation)
+	router.GET("/rooms/checkin/status", ctrl.IsAllMemberReady)
+	router.POST("/rooms/checkin", ctrl.BelongToTheRoom)
+	router.GET("/rooms/remaining/human", ctrl.GetRemainingHumans)
+	router.GET("/rooms/humans/collaborate", ctrl.GetHumanCollaborate)
+	router.GET("/rooms/humans/locations", ctrl.GetHumansLocation)
+	router.GET("/rooms/demons/locations", ctrl.GetDemonsLocation)
 
 	return router
 }
