@@ -36,7 +36,7 @@ func (r *redisRepository) CreateUserRoom(userId, value string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "", nil
+	return UserRoomValue, nil
 }
 
 func (r *redisRepository) CreateRoomMember(roomId string) error {

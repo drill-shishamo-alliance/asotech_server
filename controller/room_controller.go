@@ -26,7 +26,10 @@ func NewRoomController(r model.IRoom) IRoomController {
 
 func (ctrl *roomController) CreateTheRoom(ctx *gin.Context) {
 	userId := ctx.GetHeader("user_id")
+	print("UserID: " + userId)
 	result, err := ctrl.IRoom.Insert(userId, "3600", 5)
+	print("result: ")
+	print(result)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
 	}
