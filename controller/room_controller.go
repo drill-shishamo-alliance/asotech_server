@@ -37,7 +37,7 @@ func (ctrl *roomController) CreateTheRoom(ctx *gin.Context) {
 }
 
 func (ctrl *roomController) IsAllMemberReady(ctx *gin.Context) {
-	roomId := ctx.Param("id")
+	roomId := ctx.GetHeader("room_id")
 	result, err := ctrl.IRoom.IsMemberReady(roomId)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
@@ -46,7 +46,7 @@ func (ctrl *roomController) IsAllMemberReady(ctx *gin.Context) {
 }
 
 func (ctrl *roomController) BelongToTheRoom(ctx *gin.Context) {
-	roomId := ctx.Param("id")
+	roomId := ctx.GetHeader("room_id")
 	userId := ctx.GetHeader("user_id")
 	err := ctrl.IRoom.UpdateMember(roomId, userId)
 	if err != nil {
@@ -56,7 +56,7 @@ func (ctrl *roomController) BelongToTheRoom(ctx *gin.Context) {
 }
 
 func (ctrl *roomController) GetRemainingHumans(ctx *gin.Context) {
-	roomId := ctx.Param("id")
+	roomId := ctx.GetHeader("room_id")
 	result, err := ctrl.IRoom.SelectRemainingHuman(roomId)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
@@ -65,7 +65,7 @@ func (ctrl *roomController) GetRemainingHumans(ctx *gin.Context) {
 }
 
 func (ctrl *roomController) GetHumanCollaborate(ctx *gin.Context) {
-	roomId := ctx.Param("id")
+	roomId := ctx.GetHeader("room_id")
 	userId := ctx.GetHeader("user_id")
 	result, err := ctrl.IRoom.SelectCollaborateHuman(roomId, userId, 80)
 	if err != nil {
@@ -75,7 +75,7 @@ func (ctrl *roomController) GetHumanCollaborate(ctx *gin.Context) {
 }
 
 func (ctrl *roomController) GetHumansLocation(ctx *gin.Context) {
-	roomId := ctx.Param("id")
+	roomId := ctx.GetHeader("room_id")
 	result, err := ctrl.IRoom.SelectHumansLocation(roomId)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})
@@ -84,7 +84,7 @@ func (ctrl *roomController) GetHumansLocation(ctx *gin.Context) {
 }
 
 func (ctrl *roomController) GetDemonsLocation(ctx *gin.Context) {
-	roomId := ctx.Param("id")
+	roomId := ctx.GetHeader("room_id")
 	result, err := ctrl.IRoom.SelectRoomMember(roomId)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": err})

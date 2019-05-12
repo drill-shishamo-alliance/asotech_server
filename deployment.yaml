@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: drill
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: drill
+    spec:
+      containers:
+        - name: drill-server
+          image: gcr.io/tozastation/github.com/drill-shishamo-alliance/asotech_server:daee1510cd2fbff1916c7606eef290754ee98e77
+          ports:
+            - containerPort: 3001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: drill
+  name: drill
+spec:
+  type: LoadBalancer
+  ports:
+    - name: drill
+      port: 3001
+      protocol: TCP
+      targetPort: 3001
+  selector:
+    app: drill
