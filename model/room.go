@@ -2,11 +2,11 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/drill-shishamo-alliance/asotech_server/interface/guid"
 	"github.com/drill-shishamo-alliance/asotech_server/interface/redis"
 	"github.com/drill-shishamo-alliance/asotech_server/model/db"
 	"math"
+	"strconv"
 )
 
 type room struct {
@@ -15,7 +15,7 @@ type room struct {
 }
 
 type IRoom interface {
-	Insert(userId, restrictTime string, memberNum int) (*db.RoomId, error)
+	Insert(userId, restrictTime, memberNum string) (*db.RoomId, error)
 	UpdateMember(roomId, userId string) error
 	SelectRoomMember(roomId string) (string, error)
 	DecreaseMemberStatus(roomId, userId string) error
@@ -31,19 +31,24 @@ func NewRoom(repo redis.IRedisRepository , id guid.IGuidUtil) IRoom {
 }
 
 // Insert
-func (r *room) Insert(userId, restrictTime string, memberNum int) (*db.RoomId, error) {
+func (r *room) Insert(userId, restrictTime, memberNum string) (*db.RoomId, error) {
 	// ゲームの部屋作成
 	UserRoomValue, err := r.IRedisRepository.CreateUserRoom(userId, r.IGuidUtil.CreateGuid())
 	if err != nil {
 		return nil, err
 	}
+	println(UserRoomValue)
 	// ゲームのメンバー
-	err =  r.IRedisRepository.CreateRoomMember(UserRoomValue)
+	err =  r.IRedisRepository.CreateRoomMember(UserRoomValue, userId)
 	if err != nil {
 		return nil, err
 	}
 	// 鬼の決定
 	err = r.IRedisRepository.CreateDemon(UserRoomValue, userId)
+	if err != nil {
+		return nil, err
+	}
+	err = r.IRedisRepository.CreateRoomMemberLimit(UserRoomValue, memberNum)
 	if err != nil {
 		return nil, err
 	}
@@ -226,8 +231,8 @@ func (r *room) IsMemberReady(roomId string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if roomMemberLimitValue.Value != string(len(roomMemberValue.UserId)) {
-		return false, fmt.Errorf("invailed Value")
+	if roomMemberLimitValue.Value != strconv.Itoa(len(roomMemberValue.UserId)) {
+		return false, nil
 	}
 	return true, nil
 }

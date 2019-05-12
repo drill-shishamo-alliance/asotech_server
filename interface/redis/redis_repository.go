@@ -12,7 +12,7 @@ type redisRepository struct {
 
 type IRedisRepository interface {
 	CreateUserRoom(userId, value string) (string, error)
-	CreateRoomMember(roomId string) error
+	CreateRoomMember(roomId, userId string) error
 	CreateRoomMemberLimit(roomId, num string) error
 	GetRoomMemberLimit(roomId string) (*db.RoomMemberLimit, error)
 	CreateDemon(roomId, userId string) error
@@ -39,9 +39,13 @@ func (r *redisRepository) CreateUserRoom(userId, value string) (string, error) {
 	return UserRoomValue, nil
 }
 
-func (r *redisRepository) CreateRoomMember(roomId string) error {
+func (r *redisRepository) CreateRoomMember(roomId, userId string) error {
 	UserRoomMemberKey := roomId + "_MEMBER"
-	err := r.Client.Set(UserRoomMemberKey, "", 0).Err()
+	// 2. 値を更新
+	roomUsers := db.RoomUser{}
+	roomUsers.UserId = append(roomUsers.UserId, userId)
+	result, _ := json.Marshal(roomUsers)
+	err := r.Client.Set(UserRoomMemberKey, result, 0).Err()
 	if err != nil {
 		return err
 	}
@@ -59,16 +63,19 @@ func (r *redisRepository) CreateDemon(roomId, userId string) error {
 
 func (r *redisRepository) GetRoomMember(roomId string) (*db.RoomUser, error) {
 	UserRoomMemberKey := roomId + "_MEMBER"
+	println("ユーザを取得")
 	roomUsersValue, err := r.Client.Get(UserRoomMemberKey).Result()
 	if err != nil {
 		return nil, err
 	}
 	// 2. 値を更新
+	println("ユーザをデコード")
 	roomUsers := db.RoomUser{}
 	err = json.Unmarshal([]byte(roomUsersValue), &roomUsers)
 	if err != nil {
 		return nil,err
 	}
+	println("デコード完了")
 	return &roomUsers, nil
 }
 
@@ -135,6 +142,7 @@ func  (r *redisRepository) CreateRoomMemberLimit(roomId, num string) error {
 
 func (r *redisRepository) GetRoomMemberLimit(roomId string) (*db.RoomMemberLimit, error) {
 	RoomMemberLimitKey := roomId + "_ROOM_MEMBER_LIMIT"
+	println(RoomMemberLimitKey)
 	roomMemberLimitValue, err := r.Client.Get(RoomMemberLimitKey).Result()
 	if err != nil {
 		return nil, err

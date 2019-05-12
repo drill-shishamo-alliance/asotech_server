@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: drill-server
-          image: gcr.io/tozastation/github.com/drill-shishamo-alliance/asotech_server:964c7747eb98510ccc617a2e2c158f804a469996
+          image: gcr.io/tozastation/github.com/drill-shishamo-alliance/asotech_server:cf4697cde5df5f411cbec78101103943f770b057
           ports:
             - containerPort: 3001
 ---
